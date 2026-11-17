@@ -9,3 +9,4 @@ outputs/*
 data/raw/**/*.csv
 data/processed/*
 !data/processed/.gitkeep
+.run.pid

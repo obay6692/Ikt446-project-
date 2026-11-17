@@ -14,8 +14,8 @@ change their predictive performance?
   cyclic encodings, summer, weekend and a rush-hour indicator).
 - **Not included:** weather or lagged demand; do not claim these were used.
 - **Models:** RandomForestRegressor from scikit-learn; PyTorch MLP with hidden layers 64/32.
-- **Experiment 1:** compare RF and MLP at 100% of 2024 training data.
-- **Experiment 2:** compare 25%, 50% and 100% of 2024 training days, sampled within
+- **Experiment 1:** compare RF and MLP at 100% of the 2023+2024 training data.
+- **Experiment 2:** compare 25%, 50% and 100% of 2023+2024 training days, sampled within each year-
   month with fixed seed; validation and test are never resampled.
 - **Evaluation:** MAE, RMSE, R², plots, saved hourly predictions and training curves.
 
@@ -31,10 +31,11 @@ Each file contains anonymised trips, with an offset-aware `started_at` timestamp
 Individual trip records are transformed to hourly trip-start counts. Only `started_at`
 is used; `ended_at`, trip duration, station destination etc. cannot leak into features.
 
-**Folder naming convention** (six months April–September per year, 18 files total):
+**Folder naming convention** (six months April–September per year, 24 files total):
 
 ```text
 data/raw/
+  2023/04.csv  2023/05.csv ... 2023/09.csv
   2024/04.csv  2024/05.csv ... 2024/09.csv
   2025/04.csv  2025/05.csv ... 2025/09.csv
   2026/04.csv  2026/05.csv ... 2026/09.csv
@@ -43,7 +44,7 @@ data/raw/
 The source files may instead be imported with `python import_csv.py --year 2024
 --month 4 --file "path/to/downloaded.csv"`.
 
-**Why April–September?** To compare the same six months over three years and
+**Why April–September?** To compare the same six months over four years and
 avoid extrapolating across the off-season. Conclusions do **not** apply to winter.
 The script refuses missing files: missing months must never be mistaken for zero rentals.
 
@@ -68,11 +69,22 @@ pip install -r requirements.txt
 `torch` may need installation using the official PyTorch CPU or GPU wheel as
 appropriate for your platform: https://pytorch.org/get-started/locally/
 
+## One-command run (Windows PowerShell, inside `oslo_bysykkel/`)
+
+```powershell
+.\start up               # venv + install + extract zip + prepare data + validation run (background)
+.\start up -Phase test   # final held-out 2026 run (once, after freezing settings)
+.\start status           # running? + last log lines      .\start logs   # follow outputs\run.log
+.\start down             # stop the run                    .\start down -Clean   # also delete generated files
+```
+
 ## Run from the PROJECT ROOT
 
 ```bash
-# 1. Add all 18 source CSV files (or import them one by one).
-python import_csv.py --year 2024 --month 4 --file "C:/Downloads/04.csv"
+# 1. Extract the bundled dataset (../oslo sykel dataset.zip, stored with Git LFS)
+#    into data/raw/YYYY/MM.csv. Alternatively import files one by one.
+python extract_dataset.py
+# python import_csv.py --year 2024 --month 4 --file "C:/Downloads/04.csv"
 
 # 2. Build a single hourly table and document exactly which source files were used.
 python prepare_data.py
@@ -113,14 +125,14 @@ from **Oslo only** and never copy the original GitHub repository's UCI scores.
 
 ## Explanation of validation / leakage rules
 
-- Train: April 2–September 30 **2024**.
+- Train: April 2–September 30 **2023 and 2024** (`split.train_years` in config.json).
 - Validation: April 2–September 30 **2025**. Used for MLP early stopping and method design.
 - Test: April 2–September 30 **2026**. No tuning or model selection on this set.
 - Only training data fit the MLP input/target scalers.
 - Each training fraction samples whole days within each month with a fixed seed.
 - Same target and input features for both models; no future trip counts as features.
 - For final report, discuss that a calendar-only model omits weather, events and
-  recent-demand lags, and that using a single training year limits generalisation.
+  recent-demand lags, and that two training years still limit generalisation.
 - To assess operational usability, more comparisons, day-type stratification and
   independent validation may be warranted, if time permits.
 
@@ -128,6 +140,7 @@ from **Oslo only** and never copy the original GitHub repository's UCI scores.
 
 ```text
 config.json                  # All choices and fixed hyperparameters
+extract_dataset.py           # Unpack ../oslo sykel dataset.zip into data/raw/
 import_csv.py                # Put a downloaded month in the right folder
 prepare_data.py              # Read trip CSVs and aggregate hours
 run_experiments.py           # RF/MLP, two comparisons, metrics, figures

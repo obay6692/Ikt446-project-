@@ -146,10 +146,19 @@ def load_hourly(path: str | Path) -> pd.DataFrame:
     return frame.sort_values("timestamp_utc").reset_index(drop=True)
 
 
+def train_years(config: dict) -> list[int]:
+    """Training years; accepts either "train_years" (list) or legacy "train_year"."""
+    split = config["split"]
+    years = split.get("train_years", split.get("train_year"))
+    if years is None:
+        raise ValueError("config.split needs train_years (list) or train_year")
+    return sorted([years] if isinstance(years, int) else [int(y) for y in years])
+
+
 def split_by_year(df: pd.DataFrame, config: dict) -> dict[str, pd.DataFrame]:
     years = config["split"]
     result = {
-        "train": df.loc[df.year == years["train_year"]].copy(),
+        "train": df.loc[df.year.isin(train_years(config))].copy(),
         "validation": df.loc[df.year == years["validation_year"]].copy(),
         "test": df.loc[df.year == years["test_year"]].copy(),
     }
@@ -164,7 +173,7 @@ def split_by_year(df: pd.DataFrame, config: dict) -> dict[str, pd.DataFrame]:
 def subset_training_days(df: pd.DataFrame, fraction: float, seed: int) -> pd.DataFrame:
     """Nested, seeded complete-day samples, stratified by month.
 
-    Because all sampled days belong to the training year, temporal train/val/test
+    Because all sampled days belong to the training years, temporal train/val/test
     separation is maintained. Equal monthly representation reduces seasonal bias.
     """
     if not 0 < fraction <= 1:
@@ -173,7 +182,8 @@ def subset_training_days(df: pd.DataFrame, fraction: float, seed: int) -> pd.Dat
         return df.copy()
     tmp = df.copy()
     tmp["local_date"] = tmp["timestamp_oslo"].dt.date
-    tmp["local_month"] = tmp["timestamp_oslo"].dt.month
+    # Stratify by (year, month) so every training year keeps its share of each month.
+    tmp["local_month"] = tmp["timestamp_oslo"].dt.year * 100 + tmp["timestamp_oslo"].dt.month
     rng = np.random.default_rng(seed)
     chosen = []
     for _, block in tmp.groupby("local_month", sort=True):

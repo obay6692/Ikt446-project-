@@ -3,13 +3,13 @@
   "data": {
     "raw_dir": "data/raw",
     "prepared_path": "data/processed/hourly_demand.csv",
-    "years": [2024, 2025, 2026],
+    "years": [2023, 2024, 2025, 2026],
     "months": [4, 5, 6, 7, 8, 9],
     "timezone": "Europe/Oslo",
     "drop_first_day_of_season": true
   },
   "split": {
-    "train_year": 2024,
+    "train_years": [2023, 2024],
     "validation_year": 2025,
     "test_year": 2026
   },
