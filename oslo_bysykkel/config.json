@@ -1,0 +1,33 @@
+{
+  "project": "IKT466 Oslo Bysykkel hourly demand forecasting",
+  "data": {
+    "raw_dir": "data/raw",
+    "prepared_path": "data/processed/hourly_demand.csv",
+    "years": [2024, 2025, 2026],
+    "months": [4, 5, 6, 7, 8, 9],
+    "timezone": "Europe/Oslo",
+    "drop_first_day_of_season": true
+  },
+  "split": {
+    "train_year": 2024,
+    "validation_year": 2025,
+    "test_year": 2026
+  },
+  "experiments": {
+    "training_fractions": [0.25, 0.5, 1.0],
+    "seed": 42,
+    "random_forest": {
+      "n_estimators": 120,
+      "min_samples_leaf": 3,
+      "max_features": 1.0
+    },
+    "mlp": {
+      "hidden_sizes": [64, 32],
+      "learning_rate": 0.001,
+      "batch_size": 128,
+      "max_epochs": 120,
+      "patience": 15,
+      "weight_decay": 0.0001
+    }
+  }
+}
