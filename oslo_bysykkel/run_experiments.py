@@ -24,7 +24,7 @@ from src.models import fit_rf, predict_rf, fit_mlp, predict_mlp, save_rf, save_m
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Train RF/MLP on 2024 and validate 2025 / test 2026")
+    parser = argparse.ArgumentParser(description="Train RF/MLP on 2023-2024 and validate 2025 / test 2026")
     parser.add_argument("--phase", choices=["validation", "test"], required=True,
                         help="Use validation for model design; test only for frozen final comparisons")
     parser.add_argument("--config", default="config.json")

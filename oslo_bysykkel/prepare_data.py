@@ -2,7 +2,7 @@
 import argparse
 import json
 from pathlib import Path
-from src.data import build_hourly, load_config
+from src.data import build_hourly, load_config, train_years
 
 
 def main():
@@ -18,7 +18,7 @@ def main():
     manifest.to_csv(target.parent / "source_manifest.csv", index=False)
     selection = {"years": cfg["data"]["years"], "months": cfg["data"]["months"],
                  "timezone": cfg["data"]["timezone"], "first_day_excluded": cfg["data"]["drop_first_day_of_season"],
-                 "train_year": cfg["split"]["train_year"],
+                 "train_years": train_years(cfg),
                  "validation_year": cfg["split"]["validation_year"],
                  "test_year": cfg["split"]["test_year"],
                  "hours_per_year": {str(y): int((hourly.year == y).sum()) for y in cfg["data"]["years"]}}
